@@ -6,7 +6,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from recall_server.voter.views import (
-    VoterRegisterView,
+    #VoterRegisterView,
     UserRegisterView,
     VoterProfileViewSet
 )
@@ -17,7 +17,7 @@ router.register(r'profiles', VoterProfileViewSet)
 
 urlpatterns = [
     # Legacy endpoint for backward compatibility
-    path("register/", VoterRegisterView.as_view(), name="voter-register"),
+    # path("register/", VoterRegisterView.as_view(), name="voter-register"),
     
     # New endpoints using Django's User model
     path("user/register/", UserRegisterView.as_view(), name="user-register"),

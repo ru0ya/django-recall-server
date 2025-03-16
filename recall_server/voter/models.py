@@ -6,6 +6,7 @@ import datetime
 import uuid
 import base64
 from django.utils import timezone
+
 try:
     from cryptography.hazmat.primitives import hashes
     from cryptography.hazmat.primitives.asymmetric import padding, rsa
@@ -23,26 +24,60 @@ from recall_server.common.mixins import OwnerlessAbstract
 
 class VoterProfile(models.Model):
     """
-    Profile model that extends the Django User model through a OneToOneField relationship.
+    Profile model that extends the Django User model 
+    through a OneToOneField relationship.
     This follows Django's recommended approach for extending the User model.
     """
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='voter_profile')
-    tokenized_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField(
+            User,
+            on_delete=models.CASCADE,
+            related_name='voter_profile'
+            )
+    tokenized_id = models.UUIDField(
+            primary_key=True,
+            default=uuid.uuid4,
+            editable=False
+            )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     # Additional profile fields
-    profile_picture = models.URLField(blank=True, null=True)
+    # profile_picture = models.URLField(blank=True, null=True)
     bio = models.TextField(blank=True)
-    digital_signature = models.TextField(blank=True, help_text="Base64 encoded digital signature for document verification")
-    signature_public_key = models.TextField(blank=True, help_text="Public key associated with the digital signature")
-    signature_verified = models.BooleanField(default=False, help_text="Whether the signature has been verified")
-    signature_date = models.DateTimeField(null=True, blank=True, help_text="When the signature was added or updated")
+    digital_signature = models.TextField(
+            blank=True,
+            help_text="Base64 encoded digital signature for document verification"
+            )
+    signature_public_key = models.TextField(
+            blank=True,
+            help_text="Public key associated with the digital signature"
+            )
+    signature_verified = models.BooleanField(
+            default=False,
+            help_text="Whether the signature has been verified"
+            )
+    signature_date = models.DateTimeField(
+            null=True,
+            blank=True,
+            help_text="When the signature was added or updated"
+            )
     
     # Location information for matching with representatives
-    county = models.ForeignKey('county.County', on_delete=models.SET_NULL, null=True, blank=True, related_name='voters')
-    constituency = models.ForeignKey('county.Constituency', on_delete=models.SET_NULL, null=True, blank=True, related_name='voters')
+    county = models.ForeignKey(
+            'county.County',
+            on_delete=models.SET_NULL, 
+            null=True,
+            blank=True,
+            related_name='voters'
+            )
+    constituency = models.ForeignKey(
+            'county.Constituency',
+            on_delete=models.SET_NULL,
+            null=True,
+            blank=True,
+            related_name='voters'
+            )
     ward = models.CharField(max_length=100, blank=True)
     
     # Notification preferences
@@ -51,11 +86,31 @@ class VoterProfile(models.Model):
     notify_on_vote = models.BooleanField(default=True)
     
     # Track followed bills, legislators, and topics
-    followed_bills = models.ManyToManyField('laws.Bill', blank=True, related_name='followers')
-    followed_mps = models.ManyToManyField('mps.MemberOfParliament', blank=True, related_name='followers')
-    followed_senators = models.ManyToManyField('county.Senator', blank=True, related_name='followers')
-    followed_mcas = models.ManyToManyField('county.MCA', blank=True, related_name='followers')
-    interests = models.CharField(max_length=500, blank=True, help_text="Comma-separated list of policy interests")
+    followed_bills = models.ManyToManyField(
+            'laws.Bill',
+            blank=True,
+            related_name='followers'
+            )
+    followed_mps = models.ManyToManyField(
+            'mps.MemberOfParliament',
+            blank=True,
+            related_name='followers'
+            )
+    followed_senators = models.ManyToManyField(
+            'county.Senator',
+            blank=True,
+            related_name='followers'
+            )
+    followed_mcas = models.ManyToManyField(
+            'county.MCA',
+            blank=True,
+            related_name='followers'
+            )
+    interests = models.CharField(
+            max_length=500,
+            blank=True,
+            help_text="Comma-separated list of policy interests"
+            )
 
     class Meta:
         indexes = [
@@ -218,6 +273,7 @@ class VoterProfile(models.Model):
             self.signature_verified = True
             self.save()
             return True
+
         except Exception:
             # Any error means the signature is invalid
             return False
@@ -263,6 +319,7 @@ class VoterProfile(models.Model):
             self.save()
             
             return private_pem, public_pem
+
         except Exception:
             return None, None
             
@@ -308,6 +365,7 @@ class VoterProfile(models.Model):
             self.save()
             
             return signature_base64
+
         except Exception:
             return None
 
@@ -327,36 +385,36 @@ def save_voter_profile(sender, instance, **kwargs):
 
 # Keep the old Voter model for backward compatibility during migration
 # This can be removed after migration is complete
-class Voter(OwnerlessAbstract):
-    """
-    Legacy model to represent a voter for the `voter` Django app.
-    This is kept for backward compatibility and will be deprecated.
-    """
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
-    username = models.CharField(max_length=100, unique=True)
-    password = models.CharField(max_length=128)
+# class Voter(OwnerlessAbstract):
+#     """
+#     Legacy model to represent a voter for the `voter` Django app.
+#     This is kept for backward compatibility and will be deprecated.
+#     """
+#     first_name = models.CharField(max_length=100)
+#     last_name = models.CharField(max_length=100)
+#     email = models.EmailField(unique=True)
+#     username = models.CharField(max_length=100, unique=True)
+#     password = models.CharField(max_length=128)
     
-    # Additional fields for user profile
-    profile_picture = models.URLField(blank=True, null=True)
-    bio = models.TextField(blank=True)
+#     # Additional fields for user profile
+#     profile_picture = models.URLField(blank=True, null=True)
+#     bio = models.TextField(blank=True)
     
-    # Location information for matching with representatives
-    county = models.ForeignKey('county.County', on_delete=models.SET_NULL, null=True, blank=True, related_name='legacy_voters')
-    constituency = models.ForeignKey('county.Constituency', on_delete=models.SET_NULL, null=True, blank=True, related_name='legacy_voters')
-    ward = models.CharField(max_length=100, blank=True)
+#     # Location information for matching with representatives
+#     county = models.ForeignKey('county.County', on_delete=models.SET_NULL, null=True, blank=True, related_name='legacy_voters')
+#     constituency = models.ForeignKey('county.Constituency', on_delete=models.SET_NULL, null=True, blank=True, related_name='legacy_voters')
+#     ward = models.CharField(max_length=100, blank=True)
     
-    # Engagement metrics
-    last_login = models.DateTimeField(null=True, blank=True)
-    date_joined = models.DateTimeField(auto_now_add=True)
-    is_verified = models.BooleanField(default=False)
+#     # Engagement metrics
+#     last_login = models.DateTimeField(null=True, blank=True)
+#     date_joined = models.DateTimeField(auto_now_add=True)
+#     is_verified = models.BooleanField(default=False)
     
-    class Meta:
-        indexes = [
-            models.Index(fields=['email']),
-            models.Index(fields=['username']),
-        ]
+#     class Meta:
+#         indexes = [
+#             models.Index(fields=['email']),
+#             models.Index(fields=['username']),
+#         ]
 
-    def __str__(self):
-        return f"{self.first_name} {self.last_name}"
+#     def __str__(self):
+#         return f"{self.first_name} {self.last_name}"

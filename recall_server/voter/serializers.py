@@ -4,7 +4,7 @@ Model serializers for the `voter` Django app.
 
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
-from recall_server.voter.models import Voter, VoterProfile
+from recall_server.voter.models import  VoterProfile
 from rest_framework import serializers
 
 
@@ -144,32 +144,32 @@ class VoterProfileDetailSerializer(VoterProfileSerializer):
 
 
 # Legacy serializer for backward compatibility
-class VoterSerializer(serializers.ModelSerializer):
-    """
-    Legacy serializer for the Voter model.
-    This is kept for backward compatibility and will be deprecated.
-    """
-    class Meta:
-        model = Voter
-        fields = [
-            "first_name",
-            "last_name",
-            "email",
-            "username",
-            "password",
-            "tokenized_id",
-            "created_at",
-            "profile_picture",
-            "bio",
-            "county",
-            "constituency",
-            "ward",
-            "is_verified",
-            "date_joined",
-        ]
-        read_only_fields = ["tokenized_id", "created_at", "date_joined"]
-        extra_kwargs = {"password": {"write_only": True}}
+# class VoterSerializer(serializers.ModelSerializer):
+#     """
+#     Legacy serializer for the Voter model.
+#     This is kept for backward compatibility and will be deprecated.
+#     """
+#     class Meta:
+#         model = Voter
+#         fields = [
+#             "first_name",
+#             "last_name",
+#             "email",
+#             "username",
+#             "password",
+#             "tokenized_id",
+#             "created_at",
+#             "profile_picture",
+#             "bio",
+#             "county",
+#             "constituency",
+#             "ward",
+#             "is_verified",
+#             "date_joined",
+#         ]
+#         read_only_fields = ["tokenized_id", "created_at", "date_joined"]
+#         extra_kwargs = {"password": {"write_only": True}}
 
-    def create(self, validated_data):
-        validated_data["password"] = make_password(validated_data["password"])
-        return super().create(validated_data)
+#     def create(self, validated_data):
+#         validated_data["password"] = make_password(validated_data["password"])
+#         return super().create(validated_data)
