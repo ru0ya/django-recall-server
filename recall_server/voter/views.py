@@ -2,19 +2,21 @@
 Custom views for the `voter` Django app.
 """
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from recall_server.voter.models import VoterProfile, Voter
+from recall_server.voter.models import VoterProfile
 from recall_server.voter.serializers import (
-    UserSerializer,
+    VoterSerializer,
     VoterProfileSerializer,
     VoterProfileDetailSerializer,
-    VoterSerializer
 )
+
+
+User = get_user_model()
 
 
 class VoterProfileViewSet(viewsets.ModelViewSet):
@@ -34,7 +36,7 @@ class VoterProfileViewSet(viewsets.ModelViewSet):
         # Regular users can only see their own profile
         user = self.request.user
         if not user.is_staff:
-            return VoterProfile.objects.filter(user=user)
+            return VoterProfile.objects.filter(user=self.request.user.id)
         return VoterProfile.objects.all()
     
     @action(detail=False, methods=['get'])
@@ -55,7 +57,10 @@ class VoterProfileViewSet(viewsets.ModelViewSet):
         bill_id = request.data.get('bill_id')
         
         if not bill_id:
-            return Response({"detail": "No bill ID provided."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                    {"detail": "No bill ID provided."},
+                    status=status.HTTP_400_BAD_REQUEST
+                    )
             
         from recall_server.laws.models import Bill
         try:
@@ -63,7 +68,10 @@ class VoterProfileViewSet(viewsets.ModelViewSet):
             profile.followed_bills.add(bill)
             return Response({"detail": "Bill followed successfully."})
         except Bill.DoesNotExist:
-            return Response({"detail": "Bill not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                    {"detail": "Bill not found."},
+                    status=status.HTTP_404_NOT_FOUND
+                    )
     
     @action(detail=True, methods=['post'])
     def unfollow_bill(self, request, pk=None):
@@ -74,7 +82,10 @@ class VoterProfileViewSet(viewsets.ModelViewSet):
         bill_id = request.data.get('bill_id')
         
         if not bill_id:
-            return Response({"detail": "No bill ID provided."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                    {"detail": "No bill ID provided."},
+                    status=status.HTTP_400_BAD_REQUEST
+                    )
             
         from recall_server.laws.models import Bill
         try:
@@ -82,7 +93,10 @@ class VoterProfileViewSet(viewsets.ModelViewSet):
             profile.followed_bills.remove(bill)
             return Response({"detail": "Bill unfollowed successfully."})
         except Bill.DoesNotExist:
-            return Response({"detail": "Bill not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                    {"detail": "Bill not found."},
+                    status=status.HTTP_404_NOT_FOUND
+                    )
     
     @action(detail=True, methods=['post'])
     def generate_signature_keypair(self, request, pk=None):
@@ -94,7 +108,8 @@ class VoterProfileViewSet(viewsets.ModelViewSet):
         
         if not private_key or not public_key:
             return Response(
-                {"detail": "Failed to generate keypair. Cryptography library may not be available."},
+                {"detail": "Failed to generate keypair.\
+                    Cryptography library may not be available."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         
@@ -102,7 +117,8 @@ class VoterProfileViewSet(viewsets.ModelViewSet):
         return Response({
             "private_key": private_key,
             "public_key": public_key,
-            "message": "Store your private key securely. It will not be available again."
+            "message": "Store your private key securely. \
+                    It will not be available again."
         })
         
     @action(detail=True, methods=['post'])
@@ -199,35 +215,35 @@ class UserRegisterView(APIView):
 
 
 # Legacy view for backward compatibility
-class VoterRegisterView(APIView):
-    """
-    Legacy API view for voter registration.
-    This is kept for backward compatibility and will be deprecated.
-    """
-    permission_classes = [permissions.AllowAny]
+# class VoterRegisterView(APIView):
+#     """
+#     Legacy API view for voter registration.
+#     This is kept for backward compatibility and will be deprecated.
+#     """
+#     permission_classes = [permissions.AllowAny]
 
-    def post(self, request):
-        serializer = VoterSerializer(data=request.data)
-        if serializer.is_valid():
-            voter = serializer.save()
+#     def post(self, request):
+#         serializer = VoterSerializer(data=request.data)
+#         if serializer.is_valid():
+#             voter = serializer.save()
             
-            # Also create a User and VoterProfile for this Voter
-            user = User.objects.create(
-                username=voter.username,
-                email=voter.email,
-                password=voter.password,  # Note: This is already hashed
-                first_name=voter.first_name,
-                last_name=voter.last_name
-            )
+#             # Also create a User and VoterProfile for this Voter
+#             user = User.objects.create(
+#                 username=voter.username,
+#                 email=voter.email,
+#                 password=voter.password,  # Note: This is already hashed
+#                 first_name=voter.first_name,
+#                 last_name=voter.last_name
+#             )
             
-            # Update the VoterProfile
-            profile = user.voter_profile
-            profile.profile_picture = voter.profile_picture
-            profile.bio = voter.bio
-            profile.county = voter.county
-            profile.constituency = voter.constituency
-            profile.ward = voter.ward
-            profile.save()
+#             # Update the VoterProfile
+#             profile = user.voter_profile
+#             profile.profile_picture = voter.profile_picture
+#             profile.bio = voter.bio
+#             profile.county = voter.county
+#             profile.constituency = voter.constituency
+#             profile.ward = voter.ward
+#             profile.save()
             
-            return Response(VoterSerializer(voter).data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#             return Response(VoterSerializer(voter).data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

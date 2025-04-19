@@ -38,8 +38,8 @@ class Senator(Legislator):
             blank=True
             )
     is_active = models.BooleanField(default=True)
-    date_elected = models.DateField()
-    term_end_date = models.DateField()
+    date_elected = models.DateField(null=True)
+    term_end_date = models.DateField(null=True)
 
     class Meta:
         indexes = [
@@ -101,8 +101,8 @@ class MCA(Legislator):
             related_name='mcas'
             )
     is_active = models.BooleanField(default=True)
-    date_elected = models.DateField()
-    term_end_date = models.DateField()
+    date_elected = models.DateField(null=True)
+    term_end_date = models.DateField(null=True)
 
     class Meta:
         verbose_name = "MCA"
