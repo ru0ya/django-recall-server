@@ -3,12 +3,14 @@ Model serializers for the `voter` Django app.
 """
 
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth.models import User
 from recall_server.voter.models import  VoterProfile
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
-class UserSerializer(serializers.ModelSerializer):
+class VoterSerializer(serializers.ModelSerializer):
     """
     Serializer for the Django User model.
     """
@@ -37,14 +39,14 @@ class VoterProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for the VoterProfile model.
     """
-    user = UserSerializer()
+    user = VoterSerializer()
     
     class Meta:
         model = VoterProfile
         fields = [
             "user",
             "tokenized_id",
-            "profile_picture",
+            # "profile_picture",
             "bio",
             "county",
             "constituency",

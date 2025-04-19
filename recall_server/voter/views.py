@@ -2,7 +2,7 @@
 Custom views for the `voter` Django app.
 """
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -10,11 +10,13 @@ from rest_framework.views import APIView
 
 from recall_server.voter.models import VoterProfile
 from recall_server.voter.serializers import (
-    UserSerializer,
+    VoterSerializer,
     VoterProfileSerializer,
     VoterProfileDetailSerializer,
-    #VoterSerializer
 )
+
+
+User = get_user_model()
 
 
 class VoterProfileViewSet(viewsets.ModelViewSet):
@@ -34,7 +36,7 @@ class VoterProfileViewSet(viewsets.ModelViewSet):
         # Regular users can only see their own profile
         user = self.request.user
         if not user.is_staff:
-            return VoterProfile.objects.filter(user=user)
+            return VoterProfile.objects.filter(user=self.request.user.id)
         return VoterProfile.objects.all()
     
     @action(detail=False, methods=['get'])
@@ -106,7 +108,7 @@ class VoterProfileViewSet(viewsets.ModelViewSet):
         
         if not private_key or not public_key:
             return Response(
-                {"detail": "Failed to generate keypair.\ 
+                {"detail": "Failed to generate keypair.\
                     Cryptography library may not be available."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

@@ -15,11 +15,14 @@ try:
 except ImportError:
     CRYPTOGRAPHY_AVAILABLE = False
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from recall_server.common.mixins import OwnerlessAbstract
+
+
+User = get_user_model()
 
 
 class VoterProfile(models.Model):
