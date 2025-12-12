@@ -81,7 +81,13 @@ class VoterProfile(models.Model):
             blank=True,
             related_name='voters'
             )
-    ward = models.CharField(max_length=100, blank=True)
+    ward = models.ForeignKey(
+            'county.Ward',
+            on_delete=models.SET_NULL,
+            null=True,
+            blank=True,
+            related_name='voters'
+            )
     
     # Notification preferences
     notify_on_new_bills = models.BooleanField(default=True)
@@ -141,7 +147,7 @@ class VoterProfile(models.Model):
             from recall_server.mps.models import MemberOfParliament
             try:
                 representatives['mp'] = MemberOfParliament.objects.get(
-                    constituency=self.constituency.name,
+                    constituency=self.constituency,
                     is_active=True
                 )
             except MemberOfParliament.DoesNotExist:
@@ -383,41 +389,5 @@ def create_voter_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=User)
 def save_voter_profile(sender, instance, **kwargs):
     """Save the VoterProfile when the User is saved"""
-    instance.voter_profile.save()
-
-
-# Keep the old Voter model for backward compatibility during migration
-# This can be removed after migration is complete
-# class Voter(OwnerlessAbstract):
-#     """
-#     Legacy model to represent a voter for the `voter` Django app.
-#     This is kept for backward compatibility and will be deprecated.
-#     """
-#     first_name = models.CharField(max_length=100)
-#     last_name = models.CharField(max_length=100)
-#     email = models.EmailField(unique=True)
-#     username = models.CharField(max_length=100, unique=True)
-#     password = models.CharField(max_length=128)
-    
-#     # Additional fields for user profile
-#     profile_picture = models.URLField(blank=True, null=True)
-#     bio = models.TextField(blank=True)
-    
-#     # Location information for matching with representatives
-#     county = models.ForeignKey('county.County', on_delete=models.SET_NULL, null=True, blank=True, related_name='legacy_voters')
-#     constituency = models.ForeignKey('county.Constituency', on_delete=models.SET_NULL, null=True, blank=True, related_name='legacy_voters')
-#     ward = models.CharField(max_length=100, blank=True)
-    
-#     # Engagement metrics
-#     last_login = models.DateTimeField(null=True, blank=True)
-#     date_joined = models.DateTimeField(auto_now_add=True)
-#     is_verified = models.BooleanField(default=False)
-    
-#     class Meta:
-#         indexes = [
-#             models.Index(fields=['email']),
-#             models.Index(fields=['username']),
-#         ]
-
-#     def __str__(self):
-#         return f"{self.first_name} {self.last_name}"
+    if hasattr(instance, 'voter_profile'):
+        instance.voter_profile.save()

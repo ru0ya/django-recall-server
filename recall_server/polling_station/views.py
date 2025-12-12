@@ -12,6 +12,7 @@ class PollingStationView(APIView):
     """
     Endpoint to add polling station.
     """
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def post(self, request):
         serializer = PollingStationSerializer(data=request.data)

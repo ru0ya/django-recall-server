@@ -1,12 +1,12 @@
 """
 Custom Database models for the `county` Django app.
 """
+import uuid
 from django.db import models
 
-from recall_server.mps.models import MemberOfParliament
-from recall_server.polling_station.models import PollingStation
-from recall_server.laws.models import Bill
+
 from recall_server.voting.models import Legislator, OfficialVote
+
 
 
 class County(models.Model):
@@ -15,6 +15,7 @@ class County(models.Model):
     """
 
     name = models.CharField(unique=True, max_length=40)
+    county_id= models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     county_number = models.CharField(max_length=3, unique=True, default=0)
     constituency_count = models.IntegerField(default=0)
 
@@ -23,7 +24,7 @@ class County(models.Model):
 
 
 class Senator(Legislator):
-    """
+    """ 
     Keep track of senators and their legislative activities
     """
     name = models.CharField(max_length=200)
@@ -31,11 +32,6 @@ class Senator(Legislator):
             County,
             on_delete=models.CASCADE,
             related_name='senators'
-            )
-    bills_proposed = models.ManyToManyField(
-            'laws.Bill',
-            related_name='proposed_by_senator',
-            blank=True
             )
     is_active = models.BooleanField(default=True)
     date_elected = models.DateField(null=True)
@@ -73,20 +69,38 @@ class Constituency(models.Model):
     """
 
     name = models.CharField(unique=True, max_length=20)
+    constituency_id= models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     registeredvoter_count = models.IntegerField(default=0)
-    mp = models.ForeignKey(
-        MemberOfParliament,
-        related_name="constituencies",
-        on_delete=models.CASCADE,
-    )
     polling_station = models.ForeignKey(
-        PollingStation,
+        'polling_station.PollingStation',
         related_name="constituencies",
         on_delete=models.CASCADE,
     )
 
     def __str__(self):
-        return f"{self.name} {self.mp} {self.polling_station}"
+        return f"{self.name} {self.registeredvoter_count} "
+
+
+class Ward(models.Model):
+    """
+    Keep track of wards.
+    """
+    name = models.CharField(unique=True, max_length=20)
+    ward_id= models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    registeredvoter_count = models.IntegerField(default=0)
+    polling_stations = models.ForeignKey(
+        'polling_station.PollingStation',
+        related_name="wards",
+        on_delete=models.CASCADE,
+    )   
+    constituency = models.ForeignKey(
+        'county.Constituency',
+        related_name="wards",
+        on_delete=models.CASCADE,
+    )
+
+    def __str__(self):
+        return f"{self.name} {self.registeredvoter_count}"
 
 
 class MCA(Legislator):

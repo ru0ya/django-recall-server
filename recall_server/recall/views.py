@@ -14,6 +14,8 @@ class RecallCreateView(APIView):
     """
     Custom, class-based API dispatcher for the `recall.Recall` model.
     """
+  
+    permission_classes=[IsAuthenticated]
 
     def get(self, request):
         recalls = Recall.objects.all()
@@ -23,9 +25,13 @@ class RecallCreateView(APIView):
     def post(self, request):
         serializer = RecallSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(recaller=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+    
+        
 
 
 class RecallDetailView(APIView):
@@ -64,3 +70,41 @@ class RecallDetailView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
         recall.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    def add_support(self, request,  pk=None):
+        """Add current user as a supporter"""
+        recall =self.get_object()
+        
+        if not recall.can_add_supporter(request.user):
+            return Response(
+                {
+                    "error": "You cannot support this recall (wrong constituency/county/ward)"
+                },
+                status = status.HTTP_403_FORBIDDEN
+            )
+            
+        recall.recall_supporters.add(request.user)
+        recall.update_signature_count()
+        
+        return Response(
+            {
+                "message": "Support added successfully",
+                "current_count": recall.current_signature_count,
+            },
+            status = status.HTTP_200_OK
+        )
+            
+    
+    def remove_support(self, request, pk=None):
+        """Remove current user as a supporter"""
+        recall = self.get_object()
+        recall.recall_supporters.remove(request.user)
+        recall.update_signature_count()
+        
+        return Response(
+            {
+                "message": "Support removed successfully",
+                "current_count": recall.current_signature_count,
+            },
+            status = status.HTTP_200_OK
+        )

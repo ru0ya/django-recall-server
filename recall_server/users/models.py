@@ -1,7 +1,8 @@
 """
 This module defines models for the user accounts.
 """
-
+from enum import unique
+import uuid
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 
@@ -24,7 +25,7 @@ class UserManager(BaseUserManager):
         return user
     
     def create_superuser(self, email, password=None, **extra_fields):
-        extra_fields.setdefault('is_path( tutorial/create/, tutorial_create, name=tutorial_create ), staff', True)
+        extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
         return self.create_user(email, password, **extra_fields)
@@ -33,6 +34,7 @@ class User(AbstractUser):
     """ User model representing custom user accounts for the project. """
 
     id_number = models.CharField(max_length=8, default=None)
+    user_ID=models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     profile_pic = models.URLField(default="https://cdn.pixabay.com/photo/2021/07/25/08/03/account-6491185_1280.png")
     email = models.EmailField(unique=True)
     is_voter = models.BooleanField(default=True)

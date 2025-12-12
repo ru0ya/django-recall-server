@@ -21,7 +21,11 @@ class MemberOfParliament(Legislator, OwnerlessAbstract):
         exp=1719053490~hmac=4e6f9ee8ae73ee004e482dc13a877e58d9dc91abcc31b2f6cfe9d878199eaba6""",
     )
     county = models.CharField(max_length=100)
-    constituency = models.CharField(max_length=100, unique=True)
+    constituency = models.ForeignKey(
+        'county.Constituency',
+        related_name="mps",
+        on_delete=models.CASCADE,
+    )
     party = models.CharField(max_length=100)
     
     # Additional fields for tracking
@@ -29,12 +33,6 @@ class MemberOfParliament(Legislator, OwnerlessAbstract):
     term_end_date = models.DateField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     
-    # Track bills proposed by this MP
-    bills_proposed = models.ManyToManyField(
-        'laws.Bill',
-        related_name='proposed_by_mp',
-        blank=True
-    )
     
     # Track voting record
     votes = GenericRelation(

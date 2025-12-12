@@ -1,11 +1,8 @@
 from django.db import models
 import uuid
-from django.conf import settings
 from django.utils import timezone
+from django.conf import settings
 
-from recall_server.config import settings
-
-# from recall_server.county.models import County
 
 
 HOUSE_CHOICES = [
@@ -100,6 +97,27 @@ class Bill(models.Model):
     # Public participation
     public_participation_start = models.DateTimeField(null=True, blank=True)
     public_participation_end = models.DateTimeField(null=True, blank=True)
+    nationalassembly_proposal = models.ForeignKey(
+        'mps.MemberOfParliament',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='nationalassembly_proposals'
+    )
+    senate_proposal = models.ForeignKey(
+        'county.Senator',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='senate_proposals'
+    )
+    county_assembly_proposal = models.ForeignKey(
+        'county.MCA',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='county_assembly_proposals'
+    )
 
     class Meta:
         ordering = ['deadline_for_voting']

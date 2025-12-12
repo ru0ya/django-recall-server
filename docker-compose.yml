@@ -1,7 +1,7 @@
 
 services:
   db:
-    image: postgres:13
+    image: postgres:16
     environment:
       POSTGRES_DB: ${DATABASE_NAME}
       POSTGRES_USER: ${DATABASE_USER}
@@ -9,17 +9,17 @@ services:
     volumes:
       - npgdata:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5433:5432"
 
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/code
     ports:
       - "8000:8000"
     depends_on:
       - db
-
+  
 volumes:
   npgdata:

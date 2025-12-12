@@ -3,7 +3,7 @@ Custom views for the `mps` Django app.
 """
 
 from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -16,7 +16,7 @@ class MpRegisterView(APIView):
     Custom, class-based API dispatcher for the `voter.Voter` model.
     """
 
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def post(self, request):
         serializer = MemberOfParliamentSerializer(data=request.data)

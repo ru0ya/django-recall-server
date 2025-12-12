@@ -4,7 +4,7 @@ Model serializers for `county` Django app.
 
 from rest_framework import serializers
 
-from recall_server.county.models import Constituency, County, Senator, MCA
+from recall_server.county.models import Constituency, County, Senator, MCA, Ward
 # from recall_server.voting.serializers import 
 from recall_server.voting.serializers import OfficialVoteSerializer
 
@@ -63,3 +63,18 @@ class MCASerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return MCA.objects.create(**validated_data)
+    
+
+class WardSerializer(serializers.ModelSerializer):
+    """
+    Serializes a ward to keep track of mca, polling station.
+    """
+    class Meta:
+        model = Ward
+        fields = ["name", "ward_id", "registeredvoter_count", "polling_stations", "constituency"]
+        read_only_fields = ["registeredvoter_count"]
+    
+    def create(self, validated_data):
+        return Ward.objects.create(**validated_data)
+        
+    

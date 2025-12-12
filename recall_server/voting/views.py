@@ -1,6 +1,7 @@
 from rest_framework import viewsets, filters
 from django.db.models import Count, Q
 # from rest_framework import action
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from recall_server.voting.serializers import(
@@ -17,6 +18,7 @@ class PublicVoteViewSet(viewsets.ModelViewSet):
     """
     queryset = PublicVote.objects.all()
     serializer_class = PublicVoteSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -28,12 +30,14 @@ class OfficialVoteViewSet(viewsets.ModelViewSet):
     """
     queryset = OfficialVote.objects.all()
     serializer_class = OfficialVoteSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
 
 class VoteStatsViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticatedOrReadOnly]
     def list(self, request, *args, **kwargs):
         bill_id = self.kwargs.get('bill_id')
         stats = PublicVote.objects.filter(bill_id=bill_id).values\
